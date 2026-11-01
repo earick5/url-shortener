@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Shortener | Сервис сокращения ссылок</title>
+  <!-- Tailwind CSS для стильного современного дизайна -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white flex flex-col justify-between">
+
+  <!-- Фоновые градиентные круги -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Верхняя панель (Navbar) -->
+  <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">URL Shortener</h1>
+          <p class="text-xs text-slate-400">FastAPI &bull; PostgreSQL &bull; Docker</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="/docs" target="_blank" class="text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 border border-slate-700/60">
+          <span>Swagger API</span>
+          <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Основной контент -->
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10 w-full flex-1">
+    
+    <!-- Заголовок -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+        ⚡ Мгновенное сокращение &bull; Статистика кликов
+      </div>
+      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3">
+        Сделай ссылку <span class="bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">короткой и красивой</span>
+      </h2>
+      <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+        Вставь длинный URL-адрес, укажи свой псевдоним при желании и отслеживай количество переходов в реальном времени.
+      </p>
+    </div>
+
+    <!-- Форма создания ссылки -->
+    <div class="glass rounded-2xl p-6 sm:p-8 shadow-2xl mb-10 border border-slate-700/50">
+      <form id="shortenForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+            Длинная ссылка <span class="text-rose-400">*</span>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+              </svg>
+            </div>
+            <input 
+              type="url" 
+              id="longUrl" 
+              required
+              placeholder="https://example.com/very/long/link/to/something"
+              class="w-full pl-11 pr-4 py-3 bg-slate-900/90 border border-slate-700/70 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+            >
+          </div>
+        </div>
+
+        <!-- Дополнительные параметры (гармошка) -->
+        <div class="pt-2">
+          <button 
+            type="button" 
+            id="toggleOptionsBtn" 
+            class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium transition"
+          >
+            <span id="toggleOptionsText">+ Дополнительные настройки (псевдоним, таймер)</span>
+          </button>
+
+          <div id="extraOptions" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                Свой псевдоним (опционально)
+              </label>
+              <input 
+                type="text" 
+                id="customAlias" 
+                placeholder="my-cool-link"
+                pattern="^[a-zA-Z0-9_-]+$"
+                class="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/70 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition"
+              >
+              <p class="text-[11px] text-slate-500 mt-1">Только латиница, цифры, дефис и _</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+                Срок действия (опционально)
+              </label>
+              <input 
+                type="datetime-local" 
+                id="expiresAt" 
+                class="w-full px-4 py-2.5 bg-slate-900/90 border border-slate-700/70 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition"
+              >
+              <p class="text-[11px] text-slate-500 mt-1">Ссылка станет неактивной после этой даты</p>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          id="submitBtn"
+          class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white font-semibold shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>Сократить ссылку</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
+      </form>
+
+      <!-- Блок успешного результата -->
+      <div id="resultBox" class="hidden mt-6 p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs text-emerald-400 font-semibold mb-1">Готово! Ваша короткая ссылка:</p>
+            <a id="shortUrlLink" href="#" target="_blank" class="text-base sm:text-lg font-bold text-white hover:underline truncate block"></a>
+          </div>
+          <button 
+            type="button" 
+            id="copyBtn" 
+            class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition shrink-0 flex items-center gap-1.5"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span id="copyBtnText">Скопировать</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Сообщение об ошибке -->
+      <div id="errorBox" class="hidden mt-4 p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs font-medium"></div>
+    </div>
+
+    <!-- Список всех ссылок и статистика -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>📊 Созданные ссылки</span>
+          <span id="linksCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700">0</span>
+        </h3>
+        <button 
+          id="refreshBtn" 
+          class="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span>Обновить</span>
+        </button>
+      </div>
+
+      <div id="linksList" class="space-y-3">
+        <!-- Сюда JavaScript вставляет карточки ссылок -->
+        <div class="text-center py-10 text-slate-500 text-sm">Загрузка ссылок...</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
+    Сделано с любовью на FastAPI, SQLAlchemy, PostgreSQL и Docker
+  </footer>
+
+  <!-- Клиентский скрипт для работы с API -->
+  <script>
+    const baseUrl = window.location.origin;
+
+    // Элементы формы
+    const shortenForm = document.getElementById('shortenForm');
+    const longUrlInput = document.getElementById('longUrl');
+    const customAliasInput = document.getElementById('customAlias');
+    const expiresAtInput = document.getElementById('expiresAt');
+    const resultBox = document.getElementById('resultBox');
+    const shortUrlLink = document.getElementById('shortUrlLink');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyBtnText = document.getElementById('copyBtnText');
+    const errorBox = document.getElementById('errorBox');
+    const linksList = document.getElementById('linksList');
+    const linksCount = document.getElementById('linksCount');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const toggleOptionsBtn = document.getElementById('toggleOptionsBtn');
+    const extraOptions = document.getElementById('extraOptions');
+    const toggleOptionsText = document.getElementById('toggleOptionsText');
+
+    // Переключение доп. параметров
+    toggleOptionsBtn.addEventListener('click', () => {
+      extraOptions.classList.toggle('hidden');
+      if (extraOptions.classList.contains('hidden')) {
+        toggleOptionsText.innerText = '+ Дополнительные настройки (псевдоним, таймер)';
+      } else {
+        toggleOptionsText.innerText = '- Скрыть дополнительные настройки';
+      }
+    });
+
+    // Копирование в буфер
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(shortUrlLink.innerText);
+      copyBtnText.innerText = 'Скопировано! ✓';
+      copyBtn.classList.replace('bg-emerald-600', 'bg-emerald-700');
+      setTimeout(() => {
+        copyBtnText.innerText = 'Скопировать';
+        copyBtn.classList.replace('bg-emerald-700', 'bg-emerald-600');
+      }, 2000);
+    });
+
+    // Обработка отправки формы
+    shortenForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.add('hidden');
+      resultBox.classList.add('hidden');
+
+      const payload = {
+        url: longUrlInput.value.trim()
+      };
+
+      const alias = customAliasInput.value.trim();
+      if (alias) payload.custom_alias = alias;
+
+      const expires = expiresAtInput.value;
+      if (expires) {
+        payload.expires_at = new Date(expires).toISOString();
+      }
+
+      try {
+        const response = await fetch('/api/v1/links', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || 'Не удалось создать ссылку');
+        }
+
+        // Показываем результат
+        const fullShortUrl = `${baseUrl}/${data.code}`;
+        shortUrlLink.innerText = fullShortUrl;
+        shortUrlLink.href = fullShortUrl;
+        resultBox.classList.remove('hidden');
+
+        // Очищаем форму и обновляем список
+        customAliasInput.value = '';
+        expiresAtInput.value = '';
+        loadLinks();
+
+      } catch (err) {
+        errorBox.innerText = `Ошибка: ${err.message}`;
+        errorBox.classList.remove('hidden');
+      }
+    });
+
+    // Загрузка списка ссылок
+    async function loadLinks() {
+      try {
+        const res = await fetch('/api/v1/links?limit=50&offset=0');
+        if (!res.ok) throw new Error('Ошибка при загрузке ссылок');
+        const links = await res.json();
+
+        linksCount.innerText = links.length;
+
+        if (links.length === 0) {
+          linksList.innerHTML = `
+            <div class="glass rounded-xl p-8 text-center text-slate-500 text-sm">
+              Пока нет созданных ссылок. Будь первым — создай ссылку выше!
+            </div>
+          `;
+          return;
+        }
+
+        linksList.innerHTML = links.map(link => {
+          const shortUrl = `${baseUrl}/${link.code}`;
+          const date = new Date(link.created_at).toLocaleDateString('ru-RU', {
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+          });
+
+          return `
+            <div class="glass rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-600 transition">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <a href="${shortUrl}" target="_blank" class="text-base font-bold text-indigo-400 hover:text-indigo-300 hover:underline">
+                    /${link.code}
+                  </a>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/50">
+                    ${date}
+                  </span>
+                  ${link.expires_at ? '<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Временная</span>' : ''}
+                </div>
+                <p class="text-xs text-slate-400 truncate max-w-lg" title="${link.url}">
+                  ${link.url}
+                </p>
+              </div>
+
+              <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                <!-- Счетчик переходов -->
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
+                  <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  <span>${link.clicks} переходов</span>
+                </div>
+
+                <!-- Кнопка копирования -->
+                <button 
+                  onclick="copyToClipboard('${shortUrl}', this)"
+                  title="Скопировать" 
+                  class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                </button>
+
+                <!-- Кнопка удаления -->
+                <button 
+                  onclick="deleteLink('${link.code}')" 
+                  title="Удалить ссылку" 
+                  class="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        linksList.innerHTML = `<div class="text-center text-rose-400 py-6 text-sm">Не удалось загрузить список ссылок</div>`;
+      }
+    }
+
+    // Удаление ссылки
+    async function deleteLink(code) {
+      if (!confirm(`Точно удалить ссылку /${code}?`)) return;
+
+      try {
+        const res = await fetch(`/api/v1/links/${code}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Не удалось удалить ссылку');
+        loadLinks();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // Быстрое копирование из карточки
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text);
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = `<span class="text-[10px] text-emerald-400 font-bold">✓</span>`;
+      setTimeout(() => { btn.innerHTML = originalHtml; }, 1500);
+    }
+
+    refreshBtn.addEventListener('click', loadLinks);
+
+    // Первичная загрузка ссылок при старте
+    loadLinks();
+  </script>
+</body>
+</html>

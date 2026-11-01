@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# Database / SQLite (if used)
+*.sqlite3
+*.db
+
+# Alembic
+alembic/versions/__pycache__
+
+# IDE
+.idea/
+.vscode/
+*.swp
